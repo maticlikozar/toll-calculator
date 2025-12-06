@@ -1,0 +1,55 @@
+---
+
+services:
+  dnsmasq:
+    image: 4km3/dnsmasq:2.86-r0
+    container_name: toll-dnsmasq
+    command: "--address=/toll.test/127.0.0.1 --log-facility=-"
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "12215:53/tcp"
+      - "12215:53/udp"
+
+  proxy:
+    image: nginx:1.29.3-alpine
+    container_name: toll-proxy
+    hostname: toll.test
+    volumes:
+      - ./resources/docker/proxy/toll.crt:/etc/nginx/toll.crt:ro
+      - ./resources/docker/proxy/toll.key:/etc/nginx/toll.key:ro
+      - ./resources/docker/proxy/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./resources/docker/proxy/index.html:/etc/nginx/html/index.html:ro
+      - ./resources/docker/proxy/favicon.ico:/etc/nginx/html/favicon.ico:ro
+    ports:
+      - "127.0.0.1:80:80"
+      - "127.0.0.1:443:443"
+
+  events:
+    image: timescale/timescaledb-ha:pg17
+    container_name: toll-events
+    environment:
+      - POSTGRES_PASSWORD=toll
+      - POSTGRES_USER=toll
+      - POSTGRES_DB=toll
+    ports:
+      - "5432:5432"
+    volumes:
+      - toll-events-data:/home/postgres/pgdata/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "toll"]
+      interval: 1m
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+      start_interval: 5s
+
+networks:
+  default:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.18.0.0/16
+
+volumes:
+  toll-events-data:

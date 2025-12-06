@@ -1,0 +1,4 @@
+**/mock/**/* -diff
+code/go/api/restapi/**/* -diff
+code/go/api/client/**/* -diff
+code/go/api/models/* -diff

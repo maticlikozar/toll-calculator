@@ -4,6 +4,7 @@ import (
 	"context"
 
 	apiErrors "toll/api/handler/errors"
+	"toll/api/mapper"
 
 	"toll/api/identity"
 	"toll/api/restapi"
@@ -15,7 +16,14 @@ func (s *apiService) RecordTollEvent(ctx context.Context, params *restapi.TollEv
 		return nil, apiErrors.ErrAPIUnauthorized
 	}
 
-	s.log.Warn("RecordTollEvent not implemented yet!")
+	tollEvent := mapper.ModelToTollEvent(params)
+
+	err := s.tollEvents.Record(ctx, tollEvent)
+	if err != nil {
+		s.log.Errore(err)
+
+		return nil, apiErrors.ErrAPIInternal
+	}
 
 	return &restapi.RecordTollEventNoContent{}, nil
 }

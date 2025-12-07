@@ -4,8 +4,9 @@ CREATE TABLE IF NOT EXISTS events (
     license_plate TEXT NOT NULL,
     event_start TIMESTAMPTZ NOT NULL,
     event_stop TIMESTAMPTZ NOT NULL,
-    car_type TEXT NOT NULL,
-    billed BOOLEAN NOT NULL DEFAULT FALSE
+    vehicle_type TEXT NOT NULL,
+    billed BOOLEAN NOT NULL DEFAULT FALSE,
+    toll_free BOOLEAN NOT NULL DEFAULT FALSE
 );
 
 SELECT create_hypertable('events', 'created_at', if_not_exists => TRUE);

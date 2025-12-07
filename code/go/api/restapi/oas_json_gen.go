@@ -5,6 +5,7 @@ package restapi
 import (
 	"math/bits"
 	"strconv"
+	"time"
 
 	"github.com/go-faster/errors"
 	"github.com/go-faster/jx"
@@ -46,6 +47,57 @@ func (s OptInt32) MarshalJSON() ([]byte, error) {
 func (s *OptInt32) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
+}
+
+// Encode encodes time.Time as json.
+func (o OptNilDateTime) Encode(e *jx.Encoder, format func(*jx.Encoder, time.Time)) {
+	if !o.Set {
+		return
+	}
+	if o.Null {
+		e.Null()
+		return
+	}
+	format(e, o.Value)
+}
+
+// Decode decodes time.Time from json.
+func (o *OptNilDateTime) Decode(d *jx.Decoder, format func(*jx.Decoder) (time.Time, error)) error {
+	if o == nil {
+		return errors.New("invalid: unable to decode OptNilDateTime to nil")
+	}
+	if d.Next() == jx.Null {
+		if err := d.Null(); err != nil {
+			return err
+		}
+
+		var v time.Time
+		o.Value = v
+		o.Set = true
+		o.Null = true
+		return nil
+	}
+	o.Set = true
+	o.Null = false
+	v, err := format(d)
+	if err != nil {
+		return err
+	}
+	o.Value = v
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s OptNilDateTime) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e, json.EncodeDateTime)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *OptNilDateTime) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d, json.DecodeDateTime)
 }
 
 // Encode encodes string as json.
@@ -277,23 +329,30 @@ func (s *TollEvent) Encode(e *jx.Encoder) {
 // encodeFields encodes fields.
 func (s *TollEvent) encodeFields(e *jx.Encoder) {
 	{
-		e.FieldStart("vehicleId")
-		e.Str(s.VehicleId)
+		e.FieldStart("license_plate")
+		e.Str(s.LicensePlate)
 	}
 	{
-		e.FieldStart("stationId")
-		e.Str(s.StationId)
+		e.FieldStart("event_start")
+		json.EncodeDateTime(e, s.EventStart)
 	}
 	{
-		e.FieldStart("timestamp")
-		json.EncodeDateTime(e, s.Timestamp)
+		if s.EventStop.Set {
+			e.FieldStart("event_stop")
+			s.EventStop.Encode(e, json.EncodeDateTime)
+		}
+	}
+	{
+		e.FieldStart("vehicle_type")
+		s.VehicleType.Encode(e)
 	}
 }
 
-var jsonFieldsNameOfTollEvent = [3]string{
-	0: "vehicleId",
-	1: "stationId",
-	2: "timestamp",
+var jsonFieldsNameOfTollEvent = [4]string{
+	0: "license_plate",
+	1: "event_start",
+	2: "event_stop",
+	3: "vehicle_type",
 }
 
 // Decode decodes TollEvent from json.
@@ -305,41 +364,49 @@ func (s *TollEvent) Decode(d *jx.Decoder) error {
 
 	if err := d.ObjBytes(func(d *jx.Decoder, k []byte) error {
 		switch string(k) {
-		case "vehicleId":
+		case "license_plate":
 			requiredBitSet[0] |= 1 << 0
 			if err := func() error {
 				v, err := d.Str()
-				s.VehicleId = string(v)
+				s.LicensePlate = string(v)
 				if err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"vehicleId\"")
+				return errors.Wrap(err, "decode field \"license_plate\"")
 			}
-		case "stationId":
+		case "event_start":
 			requiredBitSet[0] |= 1 << 1
 			if err := func() error {
-				v, err := d.Str()
-				s.StationId = string(v)
-				if err != nil {
-					return err
-				}
-				return nil
-			}(); err != nil {
-				return errors.Wrap(err, "decode field \"stationId\"")
-			}
-		case "timestamp":
-			requiredBitSet[0] |= 1 << 2
-			if err := func() error {
 				v, err := json.DecodeDateTime(d)
-				s.Timestamp = v
+				s.EventStart = v
 				if err != nil {
 					return err
 				}
 				return nil
 			}(); err != nil {
-				return errors.Wrap(err, "decode field \"timestamp\"")
+				return errors.Wrap(err, "decode field \"event_start\"")
+			}
+		case "event_stop":
+			if err := func() error {
+				s.EventStop.Reset()
+				if err := s.EventStop.Decode(d, json.DecodeDateTime); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"event_stop\"")
+			}
+		case "vehicle_type":
+			requiredBitSet[0] |= 1 << 3
+			if err := func() error {
+				if err := s.VehicleType.Decode(d); err != nil {
+					return err
+				}
+				return nil
+			}(); err != nil {
+				return errors.Wrap(err, "decode field \"vehicle_type\"")
 			}
 		default:
 			return d.Skip()
@@ -351,7 +418,7 @@ func (s *TollEvent) Decode(d *jx.Decoder) error {
 	// Validate required fields.
 	var failures []validate.FieldError
 	for i, mask := range [1]uint8{
-		0b00000111,
+		0b00001011,
 	} {
 		if result := (requiredBitSet[i] & mask) ^ mask; result != 0 {
 			// Mask only required fields and check equality to mask using XOR.
@@ -393,6 +460,60 @@ func (s *TollEvent) MarshalJSON() ([]byte, error) {
 
 // UnmarshalJSON implements stdjson.Unmarshaler.
 func (s *TollEvent) UnmarshalJSON(data []byte) error {
+	d := jx.DecodeBytes(data)
+	return s.Decode(d)
+}
+
+// Encode encodes TollEventVehicleType as json.
+func (s TollEventVehicleType) Encode(e *jx.Encoder) {
+	e.Str(string(s))
+}
+
+// Decode decodes TollEventVehicleType from json.
+func (s *TollEventVehicleType) Decode(d *jx.Decoder) error {
+	if s == nil {
+		return errors.New("invalid: unable to decode TollEventVehicleType to nil")
+	}
+	v, err := d.StrBytes()
+	if err != nil {
+		return err
+	}
+	// Try to use constant string.
+	switch TollEventVehicleType(v) {
+	case TollEventVehicleTypeCar:
+		*s = TollEventVehicleTypeCar
+	case TollEventVehicleTypeMotorbike:
+		*s = TollEventVehicleTypeMotorbike
+	case TollEventVehicleTypeTruck:
+		*s = TollEventVehicleTypeTruck
+	case TollEventVehicleTypeVan:
+		*s = TollEventVehicleTypeVan
+	case TollEventVehicleTypeTractor:
+		*s = TollEventVehicleTypeTractor
+	case TollEventVehicleTypeEmergency:
+		*s = TollEventVehicleTypeEmergency
+	case TollEventVehicleTypeDiplomat:
+		*s = TollEventVehicleTypeDiplomat
+	case TollEventVehicleTypeForeign:
+		*s = TollEventVehicleTypeForeign
+	case TollEventVehicleTypeMilitary:
+		*s = TollEventVehicleTypeMilitary
+	default:
+		*s = TollEventVehicleType(v)
+	}
+
+	return nil
+}
+
+// MarshalJSON implements stdjson.Marshaler.
+func (s TollEventVehicleType) MarshalJSON() ([]byte, error) {
+	e := jx.Encoder{}
+	s.Encode(&e)
+	return e.Bytes(), nil
+}
+
+// UnmarshalJSON implements stdjson.Unmarshaler.
+func (s *TollEventVehicleType) UnmarshalJSON(data []byte) error {
 	d := jx.DecodeBytes(data)
 	return s.Decode(d)
 }

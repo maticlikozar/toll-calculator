@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/url"
 	"time"
+
+	"github.com/go-faster/errors"
 )
 
 func (s *ProblemStatusCode) Error() string {
@@ -80,6 +82,69 @@ func (o OptInt32) Get() (v int32, ok bool) {
 
 // Or returns value if set, or given parameter if does not.
 func (o OptInt32) Or(d int32) int32 {
+	if v, ok := o.Get(); ok {
+		return v
+	}
+	return d
+}
+
+// NewOptNilDateTime returns new OptNilDateTime with value set to v.
+func NewOptNilDateTime(v time.Time) OptNilDateTime {
+	return OptNilDateTime{
+		Value: v,
+		Set:   true,
+	}
+}
+
+// OptNilDateTime is optional nullable time.Time.
+type OptNilDateTime struct {
+	Value time.Time
+	Set   bool
+	Null  bool
+}
+
+// IsSet returns true if OptNilDateTime was set.
+func (o OptNilDateTime) IsSet() bool { return o.Set }
+
+// Reset unsets value.
+func (o *OptNilDateTime) Reset() {
+	var v time.Time
+	o.Value = v
+	o.Set = false
+	o.Null = false
+}
+
+// SetTo sets value to v.
+func (o *OptNilDateTime) SetTo(v time.Time) {
+	o.Set = true
+	o.Null = false
+	o.Value = v
+}
+
+// IsNull returns true if value is Null.
+func (o OptNilDateTime) IsNull() bool { return o.Null }
+
+// SetToNull sets value to null.
+func (o *OptNilDateTime) SetToNull() {
+	o.Set = true
+	o.Null = true
+	var v time.Time
+	o.Value = v
+}
+
+// Get returns value and boolean that denotes whether value was set.
+func (o OptNilDateTime) Get() (v time.Time, ok bool) {
+	if o.Null {
+		return v, false
+	}
+	if !o.Set {
+		return v, false
+	}
+	return o.Value, true
+}
+
+// Or returns value if set, or given parameter if does not.
+func (o OptNilDateTime) Or(d time.Time) time.Time {
 	if v, ok := o.Get(); ok {
 		return v
 	}
@@ -310,37 +375,143 @@ func (*RecordTollEventNoContent) recordTollEventRes() {}
 
 // Ref: #/components/schemas/TollEvent
 type TollEvent struct {
-	VehicleId string    `json:"vehicleId"`
-	StationId string    `json:"stationId"`
-	Timestamp time.Time `json:"timestamp"`
+	// Car license plate.
+	LicensePlate string `json:"license_plate"`
+	// Event start time.
+	EventStart time.Time `json:"event_start"`
+	// Event stop time, optional.
+	EventStop OptNilDateTime `json:"event_stop"`
+	// Type of vehicle.
+	VehicleType TollEventVehicleType `json:"vehicle_type"`
 }
 
-// GetVehicleId returns the value of VehicleId.
-func (s *TollEvent) GetVehicleId() string {
-	return s.VehicleId
+// GetLicensePlate returns the value of LicensePlate.
+func (s *TollEvent) GetLicensePlate() string {
+	return s.LicensePlate
 }
 
-// GetStationId returns the value of StationId.
-func (s *TollEvent) GetStationId() string {
-	return s.StationId
+// GetEventStart returns the value of EventStart.
+func (s *TollEvent) GetEventStart() time.Time {
+	return s.EventStart
 }
 
-// GetTimestamp returns the value of Timestamp.
-func (s *TollEvent) GetTimestamp() time.Time {
-	return s.Timestamp
+// GetEventStop returns the value of EventStop.
+func (s *TollEvent) GetEventStop() OptNilDateTime {
+	return s.EventStop
 }
 
-// SetVehicleId sets the value of VehicleId.
-func (s *TollEvent) SetVehicleId(val string) {
-	s.VehicleId = val
+// GetVehicleType returns the value of VehicleType.
+func (s *TollEvent) GetVehicleType() TollEventVehicleType {
+	return s.VehicleType
 }
 
-// SetStationId sets the value of StationId.
-func (s *TollEvent) SetStationId(val string) {
-	s.StationId = val
+// SetLicensePlate sets the value of LicensePlate.
+func (s *TollEvent) SetLicensePlate(val string) {
+	s.LicensePlate = val
 }
 
-// SetTimestamp sets the value of Timestamp.
-func (s *TollEvent) SetTimestamp(val time.Time) {
-	s.Timestamp = val
+// SetEventStart sets the value of EventStart.
+func (s *TollEvent) SetEventStart(val time.Time) {
+	s.EventStart = val
+}
+
+// SetEventStop sets the value of EventStop.
+func (s *TollEvent) SetEventStop(val OptNilDateTime) {
+	s.EventStop = val
+}
+
+// SetVehicleType sets the value of VehicleType.
+func (s *TollEvent) SetVehicleType(val TollEventVehicleType) {
+	s.VehicleType = val
+}
+
+// Type of vehicle.
+type TollEventVehicleType string
+
+const (
+	TollEventVehicleTypeCar       TollEventVehicleType = "car"
+	TollEventVehicleTypeMotorbike TollEventVehicleType = "motorbike"
+	TollEventVehicleTypeTruck     TollEventVehicleType = "truck"
+	TollEventVehicleTypeVan       TollEventVehicleType = "van"
+	TollEventVehicleTypeTractor   TollEventVehicleType = "tractor"
+	TollEventVehicleTypeEmergency TollEventVehicleType = "emergency"
+	TollEventVehicleTypeDiplomat  TollEventVehicleType = "diplomat"
+	TollEventVehicleTypeForeign   TollEventVehicleType = "foreign"
+	TollEventVehicleTypeMilitary  TollEventVehicleType = "military"
+)
+
+// AllValues returns all TollEventVehicleType values.
+func (TollEventVehicleType) AllValues() []TollEventVehicleType {
+	return []TollEventVehicleType{
+		TollEventVehicleTypeCar,
+		TollEventVehicleTypeMotorbike,
+		TollEventVehicleTypeTruck,
+		TollEventVehicleTypeVan,
+		TollEventVehicleTypeTractor,
+		TollEventVehicleTypeEmergency,
+		TollEventVehicleTypeDiplomat,
+		TollEventVehicleTypeForeign,
+		TollEventVehicleTypeMilitary,
+	}
+}
+
+// MarshalText implements encoding.TextMarshaler.
+func (s TollEventVehicleType) MarshalText() ([]byte, error) {
+	switch s {
+	case TollEventVehicleTypeCar:
+		return []byte(s), nil
+	case TollEventVehicleTypeMotorbike:
+		return []byte(s), nil
+	case TollEventVehicleTypeTruck:
+		return []byte(s), nil
+	case TollEventVehicleTypeVan:
+		return []byte(s), nil
+	case TollEventVehicleTypeTractor:
+		return []byte(s), nil
+	case TollEventVehicleTypeEmergency:
+		return []byte(s), nil
+	case TollEventVehicleTypeDiplomat:
+		return []byte(s), nil
+	case TollEventVehicleTypeForeign:
+		return []byte(s), nil
+	case TollEventVehicleTypeMilitary:
+		return []byte(s), nil
+	default:
+		return nil, errors.Errorf("invalid value: %q", s)
+	}
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler.
+func (s *TollEventVehicleType) UnmarshalText(data []byte) error {
+	switch TollEventVehicleType(data) {
+	case TollEventVehicleTypeCar:
+		*s = TollEventVehicleTypeCar
+		return nil
+	case TollEventVehicleTypeMotorbike:
+		*s = TollEventVehicleTypeMotorbike
+		return nil
+	case TollEventVehicleTypeTruck:
+		*s = TollEventVehicleTypeTruck
+		return nil
+	case TollEventVehicleTypeVan:
+		*s = TollEventVehicleTypeVan
+		return nil
+	case TollEventVehicleTypeTractor:
+		*s = TollEventVehicleTypeTractor
+		return nil
+	case TollEventVehicleTypeEmergency:
+		*s = TollEventVehicleTypeEmergency
+		return nil
+	case TollEventVehicleTypeDiplomat:
+		*s = TollEventVehicleTypeDiplomat
+		return nil
+	case TollEventVehicleTypeForeign:
+		*s = TollEventVehicleTypeForeign
+		return nil
+	case TollEventVehicleTypeMilitary:
+		*s = TollEventVehicleTypeMilitary
+		return nil
+	default:
+		return errors.Errorf("invalid value: %q", data)
+	}
 }

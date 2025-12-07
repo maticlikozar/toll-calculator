@@ -9,6 +9,7 @@ import (
 
 	apiErrors "toll/api/handler/errors"
 	"toll/api/restapi"
+	"toll/api/service"
 	"toll/api/types"
 
 	log "toll/internal/log"
@@ -16,11 +17,15 @@ import (
 
 type apiService struct {
 	log log.Logger
+
+	tollEvents service.TollEventService
 }
 
 func NewApiHandlers() *apiService {
 	return &apiService{
 		log: log.WithField(types.LogComponent, "api/handlers"),
+
+		tollEvents: service.TollEvents,
 	}
 }
 

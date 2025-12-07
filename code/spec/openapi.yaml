@@ -85,20 +85,35 @@ components:
     TollEvent:
       type: object
       required:
-        - vehicleId
-        - stationId
-        - timestamp
+        - license_plate
+        - event_start
+        - vehicle_type
       properties:
-        vehicleId:
+        license_plate:
           type: string
-          example: 'ABC1234'
-        stationId:
-          type: string
-          example: 'TOLL-GANTRY-17'
-        timestamp:
+          description: Car license plate
+        event_start:
           type: string
           format: date-time
-          example: '2025-02-15T14:32:10Z'
+          description: Event start time
+        event_stop:
+          type: string
+          format: date-time
+          nullable: true
+          description: Event stop time, optional
+        vehicle_type:
+          type: string
+          description: Type of vehicle
+          enum:
+            - car
+            - motorbike
+            - truck
+            - van
+            - tractor
+            - emergency
+            - diplomat
+            - foreign
+            - military
 
     Error:
       type: object

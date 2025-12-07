@@ -25,6 +25,26 @@ services:
       - "127.0.0.1:80:80"
       - "127.0.0.1:443:443"
 
+  api:
+    image: toll/api:latest
+    build:
+      context: ./resources/docker/api
+      target: builder
+    container_name: toll-api
+    restart: always
+    command: make build/api run/api
+    environment:
+      - API_DB_DRIVER=pgx
+      - API_DB_DSN=postgres://toll:toll@events:5432/toll
+    volumes:
+      - ./code/go:/app:cached
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+    depends_on:
+      - events
+
   events:
     image: timescale/timescaledb-ha:pg17
     container_name: toll-events

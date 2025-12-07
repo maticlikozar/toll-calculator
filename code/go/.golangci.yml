@@ -1,0 +1,60 @@
+---
+run:
+  concurrency: 4
+  timeout: 5m
+  tests: true
+  build-tags:
+    - mock
+  modules-download-mode: vendor
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  path-prefix: ''
+  sort-results: false
+
+linters:
+  enable:
+    - bodyclose
+    - misspell
+    - gofmt
+    - gosec
+    - godot
+    - godox
+    - tparallel
+    - noctx
+    - depguard
+    - asciicheck
+    - prealloc
+    - gocyclo
+    - errorlint
+    - gci
+    - nlreturn
+    - whitespace
+    - wsl
+    - unconvert
+    - predeclared
+    - paralleltest
+
+linters-settings:
+  depguard:
+    rules:
+      main:
+        # Packages that are not allowed where the value is a suggestion.
+        deny:
+          - pkg: 'github.com/OpenPeeDeeP/depguard'
+            desc: Not allowed
+  gci:
+    sections:
+      - standard
+      - default
+      - prefix(toll/api)
+      - prefix(toll)
+      - prefix(toll/internal)
+    custom-order: true
+  govet:
+    check-shadowing: true
+    enable:
+      - fieldalignment

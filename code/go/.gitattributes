@@ -1,0 +1,5 @@
+*.go -text diff=golang
+
+**/mock_** -diff
+vendor/**/* -diff
+api/restapi/**/* -diff

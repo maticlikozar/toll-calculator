@@ -1,0 +1,9 @@
+---
+generator:
+  features:
+    disable:
+      - 'paths/client'
+      - 'webhooks/client'
+      - 'client/request/validation'
+  content_type_aliases:
+    text/html: 'text/plain'

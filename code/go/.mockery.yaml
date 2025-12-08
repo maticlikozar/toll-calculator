@@ -1,0 +1,17 @@
+---
+all: True
+boilerplate-file: ./mockery_buildtag.go.tmpl
+filename: 'mock_{{.InterfaceNameSnake}}.go'
+mockname: 'Mock{{.InterfaceName}}'
+packages:
+  toll:
+    config:
+      dir: '{{.InterfaceDir}}/mocks'
+      exclude:
+        - vendor
+        - api/restapi
+      recursive: True
+      inpackage: False
+      outpkg: '{{.PackageName}}'
+tags: mocks
+with-expecter: True

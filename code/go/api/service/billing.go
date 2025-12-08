@@ -13,7 +13,7 @@ import (
 )
 
 const bufferSize = 1000
-const workesCount = 2
+const workesCount = 20
 
 type timeRangeFee struct {
 	startHour, startMinute int

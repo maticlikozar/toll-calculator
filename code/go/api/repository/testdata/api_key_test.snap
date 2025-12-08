@@ -1,0 +1,14 @@
+
+[TestApiKey_Get - 1]
+mock-api-key-hash
+mock-api-key-hash
+nil
+---
+
+[TestApiKey_Get_Error - 1]
+&errlog.TraceError{
+    merged:  (*errlog.MergedError)(nil),
+    err:     &errors.errorString{s:"mock get data from database error"},
+    callers: {"api/repository/api_key.go:42 Get"},
+}
+---

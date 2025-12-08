@@ -1,0 +1,54 @@
+
+[TestVehicleType_IsTollFree/emergency - 1]
+emergency
+bool(true)
+bool(true)
+---
+
+[TestVehicleType_IsTollFree/car - 1]
+car
+bool(false)
+bool(false)
+---
+
+[TestVehicleType_IsTollFree/diplomat - 1]
+diplomat
+bool(true)
+bool(true)
+---
+
+[TestVehicleType_IsTollFree/foreign - 1]
+foreign
+bool(true)
+bool(true)
+---
+
+[TestVehicleType_IsTollFree/truck - 1]
+truck
+bool(false)
+bool(false)
+---
+
+[TestVehicleType_IsTollFree/motorbike - 1]
+motorbike
+bool(true)
+bool(true)
+---
+
+[TestVehicleType_IsTollFree/tractor - 1]
+tractor
+bool(true)
+bool(true)
+---
+
+[TestVehicleType_IsTollFree/van - 1]
+van
+bool(false)
+bool(false)
+---
+
+[TestVehicleType_IsTollFree/military - 1]
+military
+bool(true)
+bool(true)
+---

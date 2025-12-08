@@ -1,0 +1,45 @@
+
+[TestDeviceDataServiceGetConnectedDevices/events_in_separate_windows - 1]
+int(26)
+int(26)
+---
+
+[TestDeviceDataServiceGetConnectedDevices/toll_free_event_day - 1]
+int(0)
+int(0)
+---
+
+[TestDeviceDataServiceGetConnectedDevices/no_events - 1]
+int(0)
+int(0)
+---
+
+[TestDeviceDataServiceGetConnectedDevices/simple_event_case - 1]
+int(18)
+int(18)
+---
+
+[TestDeviceDataServiceGetConnectedDevices/mixed_free_&_paid_–_free_event_ignored - 1]
+int(18)
+int(18)
+---
+
+[TestDeviceDataServiceGetConnectedDevices/toll_free_vehicle - 1]
+int(0)
+int(0)
+---
+
+[TestDeviceDataServiceGetConnectedDevices/multiple_events_in_same_60-min_window_(take_highest) - 1]
+int(18)
+int(18)
+---
+
+[TestDeviceDataServiceGetConnectedDevices/daily_cap_reached - 1]
+int(60)
+int(60)
+---
+
+[TestDeviceDataServiceGetConnectedDevices/same_window_fee_replacement - 1]
+int(13)
+int(13)
+---

@@ -131,7 +131,7 @@ func IsTollFreeDate(t time.Time) bool {
 }
 
 func priceForEvent(event *types.TollEvent) int {
-	if IsTollFreeDate(event.EventStart) {
+	if IsTollFreeDate(event.EventStart) || event.IsTollFree() {
 		return 0
 	}
 

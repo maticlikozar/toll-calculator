@@ -9,6 +9,9 @@ type VehicleType string
 
 // Enum values
 const (
+	Car       VehicleType = "car"
+	Van       VehicleType = "van"
+	Truck     VehicleType = "truck"
 	Motorbike VehicleType = "motorbike"
 	Tractor   VehicleType = "tractor"
 	Emergency VehicleType = "emergency"

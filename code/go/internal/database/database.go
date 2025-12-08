@@ -63,7 +63,7 @@ func Get(name ...string) DB {
 
 // Transaction func will run callback function in transaction.
 func (h *db) Transaction(ctx context.Context, cb func(ctx context.Context, tx TX) error) error {
-	tx, err := h.DB.BeginTxx(ctx, &sql.TxOptions{ReadOnly: false})
+	tx, err := h.BeginTxx(ctx, &sql.TxOptions{ReadOnly: false})
 	if err != nil {
 		return errlog.Error(err)
 	}
@@ -88,7 +88,7 @@ func (h *db) Get(ctx context.Context, dest interface{}, query string, args ...in
 		h.metrics.queryTime.WithLabelValues("Get").Observe(time.Since(t1).Seconds())
 	}()
 
-	err := h.DB.GetContext(ctx, dest, query, args...)
+	err := h.GetContext(ctx, dest, query, args...)
 
 	// Always ignore ErrNoRows.
 	if errlog.Is(err, sql.ErrNoRows) {
@@ -105,7 +105,7 @@ func (h *db) Select(ctx context.Context, dest interface{}, query string, args ..
 		h.metrics.queryTime.WithLabelValues("Select").Observe(time.Since(t1).Seconds())
 	}()
 
-	err := h.DB.SelectContext(ctx, dest, query, args...)
+	err := h.SelectContext(ctx, dest, query, args...)
 
 	// Always ignore ErrNoRows.
 	if errlog.Is(err, sql.ErrNoRows) {
@@ -122,7 +122,7 @@ func (h *db) Exec(ctx context.Context, query string, args ...interface{}) (res s
 		h.metrics.queryTime.WithLabelValues("Exec").Observe(time.Since(t1).Seconds())
 	}()
 
-	return h.DB.ExecContext(ctx, query, args...)
+	return h.ExecContext(ctx, query, args...)
 }
 
 func (h *db) NamedExec(ctx context.Context, query string, arg interface{}) (res sql.Result, err error) {
@@ -132,11 +132,11 @@ func (h *db) NamedExec(ctx context.Context, query string, arg interface{}) (res 
 		h.metrics.queryTime.WithLabelValues("NamedExec").Observe(time.Since(t1).Seconds())
 	}()
 
-	return h.DB.NamedExecContext(ctx, query, arg)
+	return h.NamedExecContext(ctx, query, arg)
 }
 
-func (h *db) Ping(_ context.Context) error {
-	return h.DB.Ping()
+func (h *db) Ping(ctx context.Context) error {
+	return h.PingContext(ctx)
 }
 
 func (h *db) Close(_ context.Context) error {

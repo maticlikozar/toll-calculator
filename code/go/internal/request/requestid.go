@@ -34,14 +34,17 @@ func GetReqId(r *http.Request) string {
 	if r == nil || r.Header == nil {
 		return ""
 	}
+
 	return r.Header.Get(requestId)
 }
 
 func GetReqIdCtx(ctx context.Context) string {
 	val := ctx.Value(requestIdKey)
+
 	rid, ok := val.(string)
 	if !ok {
 		return ""
 	}
+
 	return rid
 }

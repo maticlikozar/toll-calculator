@@ -43,7 +43,7 @@ func Get() Authorization {
 	return handle
 }
 
-// HandleApiKeyAuth implements openapi spec security defintion for API Key Auth.
+// HandleApiKeyAuth implements openapi spec security definition for API Key Auth.
 func (op *authorizer) HandleApiKeyAuth(ctx context.Context, operationName string, t restapi.ApiKeyAuth) (context.Context, error) {
 	ctx, kid, err := op.authApiKey(ctx, t.APIKey)
 	if err != nil {

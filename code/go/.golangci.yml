@@ -1,4 +1,5 @@
----
+version: 2
+
 run:
   concurrency: 4
   timeout: 5m
@@ -19,18 +20,15 @@ linters:
   enable:
     - bodyclose
     - misspell
-    - gofmt
     - gosec
     - godot
     - godox
     - tparallel
     - noctx
-    - depguard
     - asciicheck
     - prealloc
     - gocyclo
     - errorlint
-    - gci
     - nlreturn
     - whitespace
     - wsl
@@ -38,22 +36,22 @@ linters:
     - predeclared
     - paralleltest
 
-linters-settings:
-  depguard:
-    rules:
-      main:
-        # Packages that are not allowed where the value is a suggestion.
-        deny:
-          - pkg: 'github.com/OpenPeeDeeP/depguard'
-            desc: Not allowed
+formatter:
+  enable:
+    - gci
+    - gofmt
+
+formatter-settings:
   gci:
     sections:
-      - standard
-      - default
+      - Standard
+      - Default
       - prefix(toll/api)
       - prefix(toll)
       - prefix(toll/internal)
     custom-order: true
+
+linters-settings:
   govet:
     check-shadowing: true
     enable:

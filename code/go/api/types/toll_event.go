@@ -7,7 +7,7 @@ import (
 // VehicleType is a string-based enum.
 type VehicleType string
 
-// Enum values
+// Enum values.
 const (
 	Car       VehicleType = "car"
 	Van       VehicleType = "van"

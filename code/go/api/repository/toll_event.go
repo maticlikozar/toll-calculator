@@ -102,5 +102,6 @@ func (r *tollEvent) UpdateDailyFee(ctx context.Context, dailyFee types.DailyFee)
 		dailyFee.LicensePlate,
 		dailyFee.Fee,
 	)
+
 	return err
 }

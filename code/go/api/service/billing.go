@@ -99,7 +99,7 @@ func (svc *billing) billLicense(ctx context.Context, license string) error {
 
 	totalFee := svc.calculateDailyFee(events)
 
-	svc.events.UpdateDailyFee(
+	err = svc.events.UpdateDailyFee(
 		ctx,
 		types.DailyFee{
 			Date:         startOfDay,
@@ -107,6 +107,11 @@ func (svc *billing) billLicense(ctx context.Context, license string) error {
 			Fee:          totalFee,
 		},
 	)
+	if err != nil {
+		svc.log.Errorf("Billing for %s events, failed with error: %v", license, err)
+
+		return err
+	}
 
 	svc.log.Infof(
 		"Billing %s: %d events, total fee = %d SEK (took %s)",
@@ -207,6 +212,7 @@ func (svc *billing) calculateDailyFee(events []*types.TollEvent) int {
 // worker listens to the license channel and triggers billing.
 func (svc *billing) worker(ctx context.Context, workerID int) {
 	defer svc.wg.Done()
+
 	for {
 		select {
 		case <-ctx.Done():

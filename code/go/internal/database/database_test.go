@@ -45,7 +45,7 @@ func Test_Transaction_Begin(t *testing.T) {
 		"error creating mocked database, got = %v", err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	// Begin transaction.
 	mock.ExpectBegin()
@@ -75,7 +75,7 @@ func Test_Transaction_Begin_Err(t *testing.T) {
 		"error creating mocked database, got = %v", err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	// Begin transaction with error.
 	errNoTransactions := errlog.New("error starting transaction")
@@ -107,7 +107,7 @@ func Test_Transaction_Commit_Err(t *testing.T) {
 		"error creating mocked database, got = %v", err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	// Commit transaction with error.
 	errOnCommit := errlog.New("error committing transaction")
@@ -142,7 +142,7 @@ func Test_Transaction_Rollback(t *testing.T) {
 		"error creating mocked database, got = %v", err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	// Commit transaction with error.
 	errTest := errlog.New("test error")
@@ -174,7 +174,7 @@ func Test_Transaction_Rollback_Error(t *testing.T) {
 		"error creating mocked database, got = %v", err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	// Commit transaction with error.
 	errTest := errlog.New("test error")
@@ -207,7 +207,7 @@ func Test_Get(t *testing.T) {
 		err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	// Execute Get with returned row.
 	mock.
@@ -259,7 +259,7 @@ func Test_Select(t *testing.T) {
 		err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	// Execute Select with returned rows.
 	mock.
@@ -314,7 +314,7 @@ func Test_Exec(t *testing.T) {
 		"error creating mocked database",
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	// Execute select.
 	mock.
@@ -365,7 +365,7 @@ func Test_NamedExec(t *testing.T) {
 		"error creating mocked database",
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	testArg := map[string]interface{}{
 		"testArg": "testValue",
@@ -416,7 +416,7 @@ func Test_Ping(t *testing.T) {
 		err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	ctx := context.Background()
 
@@ -438,7 +438,7 @@ func Test_Close(t *testing.T) {
 		err,
 	)
 
-	defer mockDB.Close()
+	defer mockDB.Close() //nolint: errcheck
 
 	ctx := context.Background()
 

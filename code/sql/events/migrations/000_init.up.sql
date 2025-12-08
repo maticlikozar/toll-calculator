@@ -19,3 +19,11 @@ CREATE TABLE IF NOT EXISTS api_key (
     PRIMARY KEY (id),
     CONSTRAINT unique_key UNIQUE (key_hash)
 );
+
+CREATE TABLE IF NOT EXISTS daily_toll_fees (
+    date           TIMESTAMPTZ NOT NULL,
+    license_plate  TEXT NOT NULL,
+    fee            NUMERIC NOT NULL,
+
+    PRIMARY KEY (date, license_plate)
+);

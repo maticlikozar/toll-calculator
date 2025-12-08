@@ -15,6 +15,7 @@ type (
 	TollEventRepository interface {
 		GetAll(ctx context.Context, license string, t time.Time) ([]*types.TollEvent, error)
 		Record(ctx context.Context, event *types.TollEvent) error
+		UpdateDailyFee(ctx context.Context, dailyFee types.DailyFee) error
 	}
 
 	tollEvent struct {
@@ -85,4 +86,21 @@ func (r *tollEvent) Record(ctx context.Context, event *types.TollEvent) error {
 	}
 
 	return nil
+}
+
+func (r *tollEvent) UpdateDailyFee(ctx context.Context, dailyFee types.DailyFee) error {
+	insert := `
+		INSERT INTO daily_toll_fees (date, license_plate, fee)
+         	VALUES ($1, $2, $3)
+		ON CONFLICT (date, license_plate)
+		DO UPDATE SET fee = EXCLUDED.fee
+	`
+
+	_, err := r.db.Exec(ctx,
+		insert,
+		dailyFee.Date,
+		dailyFee.LicensePlate,
+		dailyFee.Fee,
+	)
+	return err
 }

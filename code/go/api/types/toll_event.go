@@ -1,6 +1,8 @@
 package types
 
-import "time"
+import (
+	"time"
+)
 
 // VehicleType is a string-based enum.
 type VehicleType string
@@ -32,4 +34,11 @@ func (t TollEvent) IsTollFree() bool {
 	default:
 		return false
 	}
+}
+
+// DailyFee holds total daily amount for specific license plate.
+type DailyFee struct {
+	Date         time.Time `json:"date" db:"date"`
+	LicensePlate string    `json:"license_plate" db:"license_plate"`
+	Fee          int       `json:"fee" db:"fee"`
 }

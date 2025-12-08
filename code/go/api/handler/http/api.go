@@ -19,6 +19,7 @@ type apiService struct {
 	log log.Logger
 
 	tollEvents service.TollEventService
+	billing    service.BillingService
 }
 
 func NewApiHandlers() *apiService {
@@ -26,6 +27,7 @@ func NewApiHandlers() *apiService {
 		log: log.WithField(types.LogComponent, "api/handlers"),
 
 		tollEvents: service.TollEvents,
+		billing:    service.Billing,
 	}
 }
 

@@ -1,13 +1,26 @@
 
-[TestGetConnectivity_Error - 1]
+[TestGetAll_Error - 1]
 &errlog.TraceError{
     merged:  (*errlog.MergedError)(nil),
     err:     &errors.errorString{s:"test error"},
-    callers: {"api/repository/toll_event.go:52 GetAll"},
+    callers: {"api/repository/toll_event.go:82 GetAll"},
 }
 ---
 
-[TestGetConnectivity_Success - 1]
+[TestGetAllForLicense_Error - 1]
+&errlog.TraceError{
+    merged:  (*errlog.MergedError)(nil),
+    err:     &errors.errorString{s:"test error"},
+    callers: {"api/repository/toll_event.go:55 GetAllForLicense"},
+}
+---
+
+[TestGetAllForLicense_Success - 1]
+[]*types.TollEvent(nil)
+nil
+---
+
+[TestGetAll_Success - 1]
 []*types.TollEvent(nil)
 nil
 ---

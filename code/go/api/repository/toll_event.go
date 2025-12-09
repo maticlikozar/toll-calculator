@@ -8,12 +8,15 @@ import (
 
 	"toll/internal/database"
 	"toll/internal/errlog"
+
+	"github.com/lib/pq"
 )
 
 type (
 	// TollEventRepository interface with method definitions.
 	TollEventRepository interface {
-		GetAll(ctx context.Context, license string, t time.Time) ([]*types.TollEvent, error)
+		GetAll(ctx context.Context, t time.Time, licenses []string) ([]*types.TollEvent, error)
+		GetAllForLicense(ctx context.Context, license string, t time.Time) ([]*types.TollEvent, error)
 		Record(ctx context.Context, event *types.TollEvent) error
 		UpdateDailyFee(ctx context.Context, dailyFee types.DailyFee) error
 	}
@@ -28,8 +31,8 @@ func TollEvent(db database.DB) TollEventRepository {
 	return &tollEvent{db: db}
 }
 
-// GetAll returns all toll events for the given license plate at or after a specific time.
-func (r *tollEvent) GetAll(ctx context.Context, license string, t time.Time) ([]*types.TollEvent, error) {
+// GetAllForLicense returns all toll events for the given license plate at or after a specific time.
+func (r *tollEvent) GetAllForLicense(ctx context.Context, license string, t time.Time) ([]*types.TollEvent, error) {
 	query := `
 		SELECT
 			created_at,
@@ -48,6 +51,33 @@ func (r *tollEvent) GetAll(ctx context.Context, license string, t time.Time) ([]
 	var events []*types.TollEvent
 
 	err := r.db.Select(ctx, &events, query, license, t)
+	if err != nil {
+		return nil, errlog.Error(err)
+	}
+
+	return events, nil
+}
+
+// GetAll returns all toll events for the given license plate at or after a specific time.
+func (r *tollEvent) GetAll(ctx context.Context, t time.Time, licenses []string) ([]*types.TollEvent, error) {
+	query := `
+		SELECT
+			created_at,
+			license_plate,
+			event_start,
+			event_stop,
+			vehicle_type,
+			billed
+		FROM events
+		WHERE event_start >= $1
+		  AND toll_free IS DISTINCT FROM true
+		  AND license_plate = ANY($2)
+		ORDER BY event_start
+	`
+
+	var events []*types.TollEvent
+
+	err := r.db.Select(ctx, &events, query, t, pq.Array(licenses))
 	if err != nil {
 		return nil, errlog.Error(err)
 	}

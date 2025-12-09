@@ -14,6 +14,7 @@ require (
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/jnovack/flag v1.16.0
 	github.com/joho/godotenv v1.5.1
+	github.com/lib/pq v1.10.9
 	github.com/ogen-go/ogen v1.10.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.21.1

@@ -31,7 +31,9 @@ func (s *apiService) RecordTollEvent(ctx context.Context, params *restapi.TollEv
 		return nil, apiErrors.ErrAPIInternal
 	}
 
-	s.billing.TriggerFor(tollEvent.LicensePlate)
+	if !tollEvent.IsTollFree() {
+		s.billing.TriggerFor(tollEvent.LicensePlate)
+	}
 
 	return &restapi.RecordTollEventNoContent{}, nil
 }

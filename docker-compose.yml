@@ -48,6 +48,7 @@ services:
   events:
     image: timescale/timescaledb-ha:pg17
     container_name: toll-events
+    command: ["-c", "max_connections=500"]
     environment:
       - POSTGRES_PASSWORD=toll
       - POSTGRES_USER=toll

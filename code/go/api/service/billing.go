@@ -12,8 +12,10 @@ import (
 	log "toll/internal/log"
 )
 
-const bufferSize = 1000
-const workesCount = 20
+const bufferSize = 2000
+const workesCount = 5
+const workerBatchSizeLimit = 2000
+const workerTimeoutTrigger = 30 * time.Second
 
 type timeRangeFee struct {
 	startHour, startMinute int
@@ -77,7 +79,7 @@ func BillingWorkers(workerCount int, bufferSize int) BillingService {
 	for i := 0; i < workerCount; i++ {
 		svc.wg.Add(1)
 
-		go svc.worker(ctx, i+1)
+		go svc.worker(ctx, i+1, workerBatchSizeLimit, workerTimeoutTrigger)
 	}
 
 	return svc
@@ -88,35 +90,50 @@ func (svc *billing) TriggerFor(license string) {
 	svc.licenseCh <- license
 }
 
-func (svc *billing) billLicense(ctx context.Context, license string) error {
+func (svc *billing) billLicenses(ctx context.Context, licenses []string) error {
+	if len(licenses) == 0 {
+		return nil
+	}
+
 	now := time.Now()
 	startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
-	events, err := svc.events.GetAll(ctx, license, startOfDay)
+	// fetch ALL events for the day (all licenses)
+	events, err := svc.events.GetAll(ctx, startOfDay, licenses)
 	if err != nil {
 		return err
 	}
 
-	totalFee := svc.calculateDailyFee(events)
-
-	err = svc.events.UpdateDailyFee(
-		ctx,
-		types.DailyFee{
-			Date:         startOfDay,
-			LicensePlate: license,
-			Fee:          totalFee,
-		},
-	)
-	if err != nil {
-		svc.log.Errorf("Billing for %s events, failed with error: %v", license, err)
-
-		return err
+	// group events by license plate
+	eventsByLicense := make(map[string][]*types.TollEvent)
+	for _, ev := range events {
+		eventsByLicense[ev.LicensePlate] = append(eventsByLicense[ev.LicensePlate], ev)
 	}
 
-	svc.log.Infof(
-		"Billing %s: %d events, total fee = %d SEK (took %s)",
-		license, len(events), totalFee, time.Since(now),
-	)
+	for _, license := range licenses {
+		levents := eventsByLicense[license]
+
+		totalFee := svc.calculateDailyFee(levents)
+
+		// write fee row for this license
+		err := svc.events.UpdateDailyFee(
+			ctx,
+			types.DailyFee{
+				Date:         startOfDay,
+				LicensePlate: license,
+				Fee:          totalFee,
+			},
+		)
+		if err != nil {
+			svc.log.Errorf("Billing for %s failed: %v", license, err)
+			return err
+		}
+
+		svc.log.Infof(
+			"Billing %s: %d events, total fee = %d SEK (took %s)",
+			license, len(levents), totalFee, time.Since(now),
+		)
+	}
 
 	return nil
 }
@@ -209,14 +226,35 @@ func (svc *billing) calculateDailyFee(events []*types.TollEvent) int {
 	return total
 }
 
-// worker listens to the license channel and triggers billing.
-func (svc *billing) worker(ctx context.Context, workerID int) {
+// worker listens to the license channel and triggers billing in batches.
+func (svc *billing) worker(ctx context.Context, workerID int, batchSize int, flushInterval time.Duration) {
 	defer svc.wg.Done()
+
+	batch := make([]string, 0, batchSize)
+
+	flush := func() {
+		if len(batch) == 0 {
+			return
+		}
+
+		svc.log.Infof("Worker %d: flushing %d licenses", workerID, len(batch))
+
+		if err := svc.billLicenses(ctx, batch); err != nil {
+			svc.log.Infof("Worker %d: error processing license %s: %v", workerID, batch, err)
+		}
+
+		batch = batch[:0]
+	}
+
+	timer := time.NewTimer(flushInterval)
+	defer timer.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			svc.log.Infof("Worker %d stopping due to context cancellation", workerID)
+
+			flush()
 
 			return
 
@@ -224,12 +262,28 @@ func (svc *billing) worker(ctx context.Context, workerID int) {
 			if !ok {
 				svc.log.Infof("Worker %d exiting, channel closed", workerID)
 
+				flush()
+
 				return
 			}
 
-			if err := svc.billLicense(ctx, license); err != nil {
-				svc.log.Infof("Worker %d: error processing license %s: %v", workerID, license, err)
+			batch = append(batch, license)
+
+			if len(batch) >= batchSize {
+				flush()
+
+				if !timer.Stop() {
+					<-timer.C
+				}
+
+				timer.Reset(flushInterval)
 			}
+
+		case <-timer.C:
+			// flush because of timeout
+			flush()
+
+			timer.Reset(flushInterval)
 		}
 	}
 }

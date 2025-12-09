@@ -11,6 +11,10 @@ CREATE TABLE IF NOT EXISTS events (
 
 SELECT create_hypertable('events', 'created_at', if_not_exists => TRUE);
 
+CREATE INDEX idx_events_plate_start_not_free
+    ON events (license_plate, event_start)
+    WHERE toll_free = false;
+
 CREATE TABLE IF NOT EXISTS api_key (
     id          BYTEA NOT NULL,
     key_hash    VARCHAR(256) NOT NULL,
